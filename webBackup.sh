@@ -4,6 +4,9 @@
 database_name=
 file_path=
 backup_to_path=
+ssh_user=
+ssh_port=
+ssh_destination=
 
 # load config
 echo 'Load config...'
@@ -98,3 +101,27 @@ case $1 in
         exit 1
         ;;
 esac
+
+# check for ssh transfer
+if [$2 == '--ssh'] || [$2 == '-s']
+then
+    if [ $ssh_user != '' ]
+    then
+        if [ $ssh_port != '' ]
+        then
+            if [ $ssh_destination != '' ]
+            then
+                scp -P $ssh_port $backup_full_path/$datetime.tar.gz $ssh_user@$ssh_destination
+            else
+                echo "Error: No ssh destination is set"
+                exit 1
+            fi
+        else
+            echo "Error: No ssh port is set"
+            exit 1
+        fi
+    else
+        echo "Error: No ssh user is set"
+        exit 1
+    fi
+fi
