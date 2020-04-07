@@ -23,14 +23,19 @@ A backup script for web applications.
 
 ## Install
 
-The following command downloads the latest version of the script to the current directory and runs the installation.
+The following command downloads the latest version of the script to the current directory and runs the setup.
 ```BASH
-wget https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.sh && chmod +x webBackup.sh && ./webBackup.sh --install
+wget https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.sh && chmod +x webBackup.sh && ./webBackup.sh --setup
 ```
 
 Then copy the example configuration and make the appropriate settings.
 ```BASH
 cp webBackup.config.example webBackup.config && nano webBackup.config
+```
+
+Install webBackup
+```BASH
+./webBackup.sh --install
 ```
 
 ## Update

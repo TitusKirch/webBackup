@@ -8,8 +8,8 @@ ssh_user=
 ssh_port=
 ssh_destination=
 
-# load config if not install
-if [ $1 != "--install" ]
+# load config if not setup
+if [ $1 != "--setup" ]
 then
 	echo 'Load config...'
 	if test -f "webBackup.config"
@@ -32,6 +32,12 @@ backup_database_path=$backup_path/$database_folder
 backup_full_path=$backup_path/full
 
 # functions
+function setup_script {
+    # setup webBackup
+    echo 'Download example config...'
+    wget --quiet --output-document=webBackup.config.example https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.config.example
+    echo 'Success'
+}
 function install_script {
     # setup webBackup folder structure
     echo 'Create webBackup folder structure...'
@@ -39,7 +45,6 @@ function install_script {
     mkdir $backup_files_path
     mkdir $backup_database_path
     mkdir $backup_full_path
-    wget --quiet --output-document=webBackup.config.example https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.config.example
     echo 'Success'
 }
 function update_script {
@@ -109,6 +114,9 @@ function ssh_upload {
 
 # check mode
 case $1 in 
+    "--setup" )
+        setup_script
+        ;;
     "--install" )
         install_script
         ;;
