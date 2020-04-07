@@ -8,15 +8,18 @@ ssh_user=
 ssh_port=
 ssh_destination=
 
-# load config
-echo 'Load config...'
-if test -f "webBackup.config"
+# load config if not install
+if $1 != "--install"
 then
-    . webBackup.config
-	echo 'Success'
-else
-    echo "Error: No config file found! Copy the default one with `cp webBackup.config.example webBackup.config`"
-    exit 1
+	echo 'Load config...'
+	if test -f "webBackup.config"
+	then
+	    . webBackup.config
+		echo 'Success'
+	else
+	    echo "Error: No config file found! Copy the default one with `cp webBackup.config.example webBackup.config`"
+	    exit 1
+	fi
 fi
 
 # setup
