@@ -81,27 +81,24 @@ function backup_full {
 }
 function ssh_upload {
     # check for ssh transfer
-    if [$2 == '--ssh'] || [$2 == '-s']
+    if [ $ssh_user != '' ]
     then
-        if [ $ssh_user != '' ]
+        if [ $ssh_port != '' ]
         then
-            if [ $ssh_port != '' ]
+            if [ $ssh_destination != '' ]
             then
-                if [ $ssh_destination != '' ]
-                then
-                    scp -P $ssh_port $backup_full_path/$datetime.tar.gz $ssh_user@$ssh_destination
-                else
-                    echo "Error: No ssh destination is set"
-                    exit 1
-                fi
+                scp -P $ssh_port $backup_full_path/$datetime.tar.gz $ssh_user@$ssh_destination
             else
-                echo "Error: No ssh port is set"
+                echo "Error: No ssh destination is set"
                 exit 1
             fi
         else
-            echo "Error: No ssh user is set"
+            echo "Error: No ssh port is set"
             exit 1
         fi
+    else
+        echo "Error: No ssh user is set"
+        exit 1
     fi
 }
 
@@ -117,7 +114,10 @@ case $1 in
         backup_database
 		backup_files
 		backup_full
-        ssh_upload
+        if [ $2 == "--ssh" ] || [ $2 == "-s" ]
+        then
+            ssh_upload
+        fi
         ;;
     "--increment"|"-i" )
         backup_database
