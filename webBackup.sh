@@ -53,7 +53,7 @@ function backup_database {
     then
         # save database
         echo 'Save database...'
-        mysqldump --single-transaction --skip-lock-tables --net_buffer_length 16384 -u root $database_name > $backup_database_path/$datetime.sql
+        mysqldump --complete-insert --routines --triggers --single-transaction --skip-lock-tables --net_buffer_length 16384 -u root $database_name > $backup_database_path/$datetime.sql
 		cp $backup_database_path/$datetime.sql $backup_database_path/last.sql
         echo 'Success'
     fi
