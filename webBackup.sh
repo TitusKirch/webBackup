@@ -79,6 +79,31 @@ function backup_full {
     echo 'Success'
     echo 'Backup available at '$backup_full_path/$datetime.tar.gz
 }
+function ssh_upload {
+    # check for ssh transfer
+    if [$2 == '--ssh'] || [$2 == '-s']
+    then
+        if [ $ssh_user != '' ]
+        then
+            if [ $ssh_port != '' ]
+            then
+                if [ $ssh_destination != '' ]
+                then
+                    scp -P $ssh_port $backup_full_path/$datetime.tar.gz $ssh_user@$ssh_destination
+                else
+                    echo "Error: No ssh destination is set"
+                    exit 1
+                fi
+            else
+                echo "Error: No ssh port is set"
+                exit 1
+            fi
+        else
+            echo "Error: No ssh user is set"
+            exit 1
+        fi
+    fi
+}
 
 # check mode
 case $1 in 
@@ -92,6 +117,7 @@ case $1 in
         backup_database
 		backup_files
 		backup_full
+        ssh_upload
         ;;
     "--increment"|"-i" )
         backup_database
@@ -102,27 +128,3 @@ case $1 in
         exit 1
         ;;
 esac
-
-# check for ssh transfer
-if [$2 == '--ssh'] || [$2 == '-s']
-then
-    if [ $ssh_user != '' ]
-    then
-        if [ $ssh_port != '' ]
-        then
-            if [ $ssh_destination != '' ]
-            then
-                scp -P $ssh_port $backup_full_path/$datetime.tar.gz $ssh_user@$ssh_destination
-            else
-                echo "Error: No ssh destination is set"
-                exit 1
-            fi
-        else
-            echo "Error: No ssh port is set"
-            exit 1
-        fi
-    else
-        echo "Error: No ssh user is set"
-        exit 1
-    fi
-fi
