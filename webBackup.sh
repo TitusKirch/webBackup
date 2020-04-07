@@ -8,6 +8,10 @@ ssh_user=
 ssh_port=
 ssh_destination=
 
+# get script directory and go to it
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+cd $dir
+
 # load config if not setup
 if [ $1 != "--setup" ]
 then
