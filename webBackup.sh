@@ -15,7 +15,7 @@ then
     . webBackup.config
 	echo 'Success'
 else
-    echo "Error: No config file found!"
+    echo "Error: No config file found! Copy the default one with `cp webBackup.config.example webBackup.config`"
     exit 1
 fi
 
@@ -36,12 +36,14 @@ function install_script {
     mkdir $backup_files_path
     mkdir $backup_database_path
     mkdir $backup_full_path
-	echo 'Success'
+    wget --quiet --output-document=webBackup.config.example https://github.com/TitusKirch/webBackup/blob/master/webBackup.config.example
+    echo 'Success'
 }
 function update_script {
     # update webBackup script
     echo 'Update script...'
     wget --quiet --output-document=$0.tmp https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.sh
+    wget --quiet --output-document=webBackup.config.example https://github.com/TitusKirch/webBackup/blob/master/webBackup.config.example
     chmod +x $0.tmp
     mv $0.tmp $0
 	echo 'Success'
