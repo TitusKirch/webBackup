@@ -1,9 +1,20 @@
 #!/bin/bash
 
-# config
-database_name=dev52
-file_path=/var/www/tkirchDev/dev52
-backup_to_path=/root
+# default config (DO NOT EDIT)
+database_name=
+file_path=
+backup_to_path=
+
+# load config
+echo 'Load config...'
+if test -f "webBackup.config"
+then
+    . webBackup.config
+	echo 'Success'
+else
+    echo "Error: No config file found!"
+    exit 1
+fi
 
 # setup
 datetime=$(date +%Y-%m-%d_%H-%M-%S)
@@ -83,7 +94,7 @@ case $1 in
 		backup_files
         ;;
     *)
-        echo "Error Use "$0" (--install) || (--full || -f ) || (--increment || -i)"
+        echo "Error: Use "$0" (--install) || (--full || -f ) || (--increment || -i)"
         exit 1
         ;;
 esac
