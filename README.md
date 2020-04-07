@@ -58,7 +58,7 @@ Creating an incremental backup:
 ./webBackup.sh -i
 ```
 
-Creating an full backup (without storage via SSH on another host system):
+Creating a full backup (without storage via SSH on another host system):
 ```BASH
 # long command
 ./webBackup.sh --full
