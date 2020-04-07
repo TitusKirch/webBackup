@@ -9,7 +9,7 @@ ssh_port=
 ssh_destination=
 
 # load config if not install
-if $1 != "--install"
+if [ $1 != "--install" ]
 then
 	echo 'Load config...'
 	if test -f "webBackup.config"
@@ -39,7 +39,7 @@ function install_script {
     mkdir $backup_files_path
     mkdir $backup_database_path
     mkdir $backup_full_path
-    wget --quiet --output-document=webBackup.config.example https://github.com/TitusKirch/webBackup/blob/master/webBackup.config.example
+    wget --quiet --output-document=webBackup.config.example https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.config.example
     echo 'Success'
 }
 function update_script {
