@@ -21,7 +21,7 @@ then
 	    . webBackup.config
 		echo 'Success'
 	else
-	    echo "Error: No config file found! Copy the default one with `cp webBackup.config.example webBackup.config`"
+	    echo "Error: No config file found! Copy the default one with 'cp webBackup.config.example webBackup.config'"
 	    exit 1
 	fi
 fi
