@@ -42,6 +42,7 @@ function update_script {
     # update webBackup script
     echo 'Update script...'
     wget --quiet --output-document="$0.tmp" https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.sh
+    chmod +x $0.tmp
     mv $0.tmp $0
 	echo 'Success'
 }
