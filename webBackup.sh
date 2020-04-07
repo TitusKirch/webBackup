@@ -41,7 +41,7 @@ function install_script {
 function update_script {
     # update webBackup script
     echo 'Update script...'
-    wget --quiet --output-document="$0.tmp" https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup
+    wget --quiet --output-document="$0.tmp" https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.sh
     mv $0.tmp $0
 	echo 'Success'
 }
