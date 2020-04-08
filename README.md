@@ -19,7 +19,7 @@
 
 ## About the project
 
-A backup script for web applications.
+webBackup should become a feature-rich, automated and customizable backup script for web applications.
 
 ## Install
 
