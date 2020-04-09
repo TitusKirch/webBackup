@@ -7,6 +7,7 @@ backup_to_path=
 ssh_user=
 ssh_port=
 ssh_destination=
+dev_mode=false
 
 # get script directory and go to it
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -26,6 +27,14 @@ then
 	fi
 fi
 
+# check mode
+if [$dev_mode]
+then
+    URL=https://raw.githubusercontent.com/TitusKirch/webBackup/dev
+else
+    URL=https://raw.githubusercontent.com/TitusKirch/webBackup/master
+fi
+
 # setup
 datetime=$(date +%Y-%m-%d_%H-%M-%S)
 backup_path=$backup_to_path/webBackup
@@ -39,7 +48,7 @@ backup_full_path=$backup_path/full
 function setup_script {
     # setup webBackup
     echo 'Download example config...'
-    wget --quiet --output-document=webBackup.config.example https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.config.example
+    wget --quiet --output-document=webBackup.config.example $URL/webBackup.config.example
     echo 'Success'
 }
 function install_script {
@@ -54,8 +63,8 @@ function install_script {
 function update_script {
     # update webBackup script
     echo 'Update script...'
-    wget --quiet --output-document=$0.tmp https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.sh
-    wget --quiet --output-document=webBackup.config.example https://github.com/TitusKirch/webBackup/blob/master/webBackup.config.example
+    wget --quiet --output-document=$0.tmp $URL/webBackup.sh
+    wget --quiet --output-document=webBackup.config.example $URL/webBackup.config.example
     chmod +x $0.tmp
     mv $0.tmp $0
 	echo 'Success'
