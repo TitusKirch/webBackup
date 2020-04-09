@@ -19,7 +19,7 @@
 
 ## About the project
 
-A backup script for web applications.
+webBackup should become a feature-rich, automated and customizable backup script for web applications.
 
 ## Install
 
@@ -58,7 +58,7 @@ Creating an incremental backup:
 ./webBackup.sh -i
 ```
 
-Creating an full backup (without storage via SSH on another host system):
+Creating a full backup (without storage via SSH on another host system):
 ```BASH
 # long command
 ./webBackup.sh --full
