@@ -4,3 +4,4 @@ backup_to_path=
 ssh_user=
 ssh_port=22
 ssh_destination=127.0.0.1:/path/to/destination
+dev_mode=false
