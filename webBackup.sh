@@ -181,7 +181,6 @@ function backup_last_update {
         echo "Create database backup..."
         mysqldump --complete-insert --routines --triggers --single-transaction --skip-lock-tables --net_buffer_length 16384 -u root $backup_database > $backup_path/last/database/last.sql.tmp
         mv $backup_path/last/database/last.sql.tmp $backup_path/last/database/last.sql
-        rm $backup_path/last/database/last.sql.tmp
         echo "Success: Database backup"
     fi
     
