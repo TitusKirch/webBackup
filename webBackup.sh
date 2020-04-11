@@ -1,156 +1,210 @@
 #!/bin/bash
 
-# default config (DO NOT EDIT)
-database_name=
-file_path=
-backup_to_path=
-ssh_user=
-ssh_port=
-ssh_destination=
-dev_mode=false
-
-# get script directory and go to it
+# get current path and switch to it
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd $DIR
 
-# load config if not setup
-if [ $1 != "--setup" ]
+# get url from repository
+URL=https://raw.githubusercontent.com/TitusKirch/webBackup/master
+
+# check for test mode
+if test -f "testMode"
 then
-	echo 'Load config...'
+    test_mode=true
+    echo "Info: Script is executed in test mode"
+else
+    test_mode=false
+fi
+
+# functions
+function load_config {
+	echo "Load config..."
 	if test -f "webBackup.config"
 	then
 	    . webBackup.config
-		echo 'Success'
+		echo "Success: Loading process completed"
 	else
-	    echo "Error: No config file found! Copy the default one with 'cp webBackup.config.example webBackup.config'"
+	    echo "Error: It seems that webBackup has not yet been set up. Please run './webBackup.sh --setup'."
 	    exit 1
 	fi
-fi
 
-# check mode
-if [$dev_mode]
-then
-    URL=https://raw.githubusercontent.com/TitusKirch/webBackup/dev
-else
-    URL=https://raw.githubusercontent.com/TitusKirch/webBackup/master
-fi
+    # if dev mode enabled, update url
+    if [ -n "$dev_mode"] && [ "$dev_mode" == "true" ]
+    then
+        URL=https://raw.githubusercontent.com/TitusKirch/webBackup/dev
+        echo "Info: Change to the developer branch"
+    fi
+}
+function check_required_config {
+    # backup_database
+    if [ -z "$backup_database" ] || [ "$backup_database" == "" ]
+    then
+	    echo "Error: The following required setting is missing in the configuration file 'backup_database'."
+	    exit 1
+    fi
 
-# setup
-datetime=$(date +%Y-%m-%d_%H-%M-%S)
-backup_path=$backup_to_path/webBackup
-files_folder=files
-database_folder=database
-backup_files_path=$backup_path/$files_folder
-backup_database_path=$backup_path/$database_folder
-backup_full_path=$backup_path/full
+    # backup_file_path
+    if [ -z "$backup_file_path" ] || [ "$backup_file_path" == "" ]
+    then
+	    echo "Error: The following required setting is missing in the configuration file 'backup_file_path'."
+	    exit 1
+    fi
+
+    # backup_hourly
+    if [ -z "$backup_hourly" ] || [ "$backup_hourly" == "" ]
+    then
+	    echo "Error: The following required setting is missing in the configuration file 'backup_hourly'."
+	    exit 1
+    fi
+
+    # backup_daily
+    if [ -z "$backup_daily" ] || [ "$backup_daily" == "" ]
+    then
+	    echo "Error: The following required setting is missing in the configuration file 'backup_daily'."
+	    exit 1
+    fi
+
+    # backup_weekly
+    if [ -z "$backup_weekly" ] || [ "$backup_weekly" == "" ]
+    then
+	    echo "Error: The following required setting is missing in the configuration file 'backup_weekly'."
+	    exit 1
+    fi
+
+    # backup_monthly
+    if [ -z "$backup_monthly" ] || [ "$backup_monthly" == "" ]
+    then
+	    echo "Error: The following required setting is missing in the configuration file 'backup_monthly'."
+	    exit 1
+    fi
+}
+function webBackup_setup {
+    # start
+    echo "Start setup..."
+    
+    # download example config
+    echo "Download example config..."
+    if [ $test_mode == true ]
+    then
+        echo "Info: Download is not executed (test mode activated)"
+    else
+        wget --quiet --output-document=webBackup.config.example $URL/webBackup.config.example
+    fi
+    echo "Success: Download completed"
+
+    # check if config file exist
+    if test -f "webBackup.config"
+    then
+        echo "Info: Configuration file was found"
+    else
+        echo "Info: Configuration file was not found"
+
+        # copy example config
+        echo "Copy example config..."
+        cp webBackup.config.example webBackup.config
+        echo "Success: Copying completed"
+    fi
+
+    # end
+    echo "Success: Setup completed"
+}
+function webBackup_install {
+    echo "TEST"
+}
+function webBackup_update {
+    # start
+    echo "Start update..."
+    
+    # download example config
+    echo "Download example config..."
+    if [ $test_mode == true ]
+    then
+        echo "Info: Download is not executed (test mode activated)"
+    else
+        wget --quiet --output-document=webBackup.config.example $URL/webBackup.config.example
+    fi
+    echo "Success: Download completed"
+
+    # end
+    echo "Success: Update completed"
+}
+function test_mode {
+    # check if config file exist
+    if [ $test_mode == true ]
+    then
+        echo "Info: Test mode file was found"
+    else
+        echo "Info: Test mode file was not found"
+
+        # create test mode file
+        echo "Create test mode file..."´
+        touch testMode
+        echo "Success: Creation completed"
+    fi
+}
+
+
+#  setup variables
+#datetime=$(date +%Y-%m-%d_%H-%M-%S)
+#backup_path=$backup_to_path/webBackup
+#files_folder=files
+#database_folder=database
+#backup_files_path=$backup_path/$files_folder
+#backup_database_path=$backup_path/$database_folder
+#backup_full_path=$backup_path/full
 
 # functions
-function setup_script {
-    # setup webBackup
-    echo 'Download example config...'
-    wget --quiet --output-document=webBackup.config.example $URL/webBackup.config.example
-    echo 'Success'
-}
-function install_script {
-    # setup webBackup folder structure
-    echo 'Create webBackup folder structure...'
-    mkdir $backup_path
-    mkdir $backup_files_path
-    mkdir $backup_database_path
-    mkdir $backup_full_path
-    echo 'Success'
-}
-function update_script {
-    # update webBackup script
-    echo 'Update script...'
-    wget --quiet --output-document=$0.tmp $URL/webBackup.sh
-    wget --quiet --output-document=webBackup.config.example $URL/webBackup.config.example
-    chmod +x $0.tmp
-    mv $0.tmp $0
-	echo 'Success'
-}
-function backup_database {
-    if [ $database_name != '' ]
-    then
-        # save database
-        echo 'Save database...'
-        mysqldump --complete-insert --routines --triggers --single-transaction --skip-lock-tables --net_buffer_length 16384 -u root $database_name > $backup_database_path/$datetime.sql
-		cp $backup_database_path/$datetime.sql $backup_database_path/last.sql
-        echo 'Success'
-    fi
-}
-function backup_files {
-    if [ $file_path != '' ]
-    then
-        # save files
-        echo 'Save files...'
-		rsync -a $file_path/ $backup_files_path
-        echo 'Success'
-    fi
-}
-function backup_full {
-    # create full backup
-    echo 'Create full backup...'
-	rm -r -f $backup_path/tmp
-	mkdir $backup_path/tmp
-	mkdir $backup_path/tmp/$files_folder
-	mkdir $backup_path/tmp/$database_folder
-	cp $backup_database_path/last.sql $backup_path/tmp/$database_folder/database.sql
-	cp -a $backup_files_path/* $backup_path/tmp/$files_folder/
-	tar -zcf $backup_full_path/$datetime.tar.gz -C $backup_path/tmp .
-	rm -r -f $backup_path/tmp
-    echo 'Success'
-    echo 'Backup available at '$backup_full_path/$datetime.tar.gz
-}
-function ssh_upload {
-    # check for ssh transfer
-    if [ $ssh_user != '' ]
-    then
-        if [ $ssh_port != '' ]
-        then
-            if [ $ssh_destination != '' ]
-            then
-                scp -P $ssh_port $backup_full_path/$datetime.tar.gz $ssh_user@$ssh_destination
-            else
-                echo "Error: No ssh destination is set"
-                exit 1
-            fi
-        else
-            echo "Error: No ssh port is set"
-            exit 1
-        fi
-    else
-        echo "Error: No ssh user is set"
-        exit 1
-    fi
-}
+
+#function install_script {
+#    # setup webBackup folder structure
+#    echo 'Create webBackup folder structure...'
+#    mkdir -p $backup_path
+#    mkdir -p $backup_files_path
+#    mkdir -p $backup_database_path
+#    mkdir -p $backup_full_path
+#    echo 'Success'
+#}
+#function update_script {
+#    # update webBackup script
+#    echo 'Update script...'
+#    wget --quiet --output-document=$0.tmp $URL/webBackup.sh
+#    wget --quiet --output-document=webBackup.config.example $URL/webBackup.config.example
+#    chmod +x $0.tmp
+#    mv $0.tmp $0
+#	echo 'Success'
+#}
 
 # check mode
 case $1 in 
     "--setup" )
-        setup_script
+        webBackup_setup
         ;;
     "--install" )
-        install_script
+        webBackup_update
+        check_required_config
+        webBackup_install
         ;;
     "--update" )
-        update_script
+        webBackup_update
         ;;
-    "--full"|"-f" )
-        backup_database
-		backup_files
-		backup_full
-        if [ $2 == "--ssh" ] || [ $2 == "-s" ]
-        then
-            ssh_upload
-        fi
+    #"--full"|"-f" )
+    #    if [ $2 == "--ssh" ] || [ $2 == "-s" ]
+    #    then
+    #        ssh_upload
+    #    fi
+    #    ;;
+    #"--increment"|"-i" )
+    #    ;;
+    "--test" )
+        load_config
+        check_required_config
         ;;
-    "--increment"|"-i" )
-        backup_database
-		backup_files
+    "--testmode" )
+        load_config
+        test_mode
         ;;
     *)
-        echo "Error: Use "$0" (--install) || (--full || -f ) || (--increment || -i)"
+        echo "Error: Your input was incorrect, please have a look at the list of all commands here: https://github.com/TitusKirch/webBackup/wiki/Commands"
         exit 1
         ;;
 esac
