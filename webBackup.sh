@@ -252,7 +252,7 @@ function archive_backup {
         echo "Success: Copy created"
     fi
 
-    # cretae archive
+    # create archive
     tar -zcf $archive_backup_file_path -C $backup_path/archives/tmp .
     
     # end (except backup should be transferred via ssh)
