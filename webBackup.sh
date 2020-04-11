@@ -8,7 +8,7 @@ cd $DIR
 URL=https://raw.githubusercontent.com/TitusKirch/webBackup/master
 
 # check for test mode
-if test -f "testMode"
+if [ -f "testMode" ]
 then
     test_mode=true
     echo "Info: Script is executed in test mode"
@@ -18,7 +18,7 @@ fi
 
 # load config
 echo "Load config..."
-if test -f "webBackup.config"
+if [ -f "webBackup.config" ]
 then
 	. webBackup.config
 	echo "Success: Loading process completed"
@@ -100,7 +100,7 @@ function webBackup_setup {
     echo "Success: Download completed"
 
     # check if config file exist
-    if test -f "webBackup.config"
+    if [ -f "webBackup.config" ]
     then
         echo "Info: Configuration file was found"
     else
@@ -230,7 +230,7 @@ function archive_backup {
     archive_backup_file_path=$archive_backup_path/$archive_prefix\_$archive_backup_id.tar.gz
      
     # check if config file exist
-    if test -f "$archive_backup_file_path"
+    if [ -f "$archive_backup_file_path" ]
     then
         echo "Remove old backup..."
         rm $archive_backup_file_path
