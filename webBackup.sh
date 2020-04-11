@@ -16,25 +16,32 @@ else
     test_mode=false
 fi
 
-# functions
-function load_config {
-	echo "Load config..."
-	if test -f "webBackup.config"
-	then
-	    . webBackup.config
-		echo "Success: Loading process completed"
-	else
-	    echo "Error: It seems that webBackup has not yet been set up. Please run './webBackup.sh --setup'."
-	    exit 1
-	fi
+# load config
+echo "Load config..."
+if test -f "webBackup.config"
+then
+	. webBackup.config
+	echo "Success: Loading process completed"
+else
+	echo "Error: It seems that webBackup has not yet been set up. Please run './webBackup.sh --setup'."
+	exit 1
+fi
 
-    # if dev mode enabled, update url
-    if [ -n "$dev_mode"] && [ "$dev_mode" == "true" ]
-    then
-        URL=https://raw.githubusercontent.com/TitusKirch/webBackup/dev
-        echo "Info: Change to the developer branch"
-    fi
-}
+# if dev mode enabled, update url
+if [ -n "$dev_mode"] && [ "$dev_mode" == "true" ]
+then
+    URL=https://raw.githubusercontent.com/TitusKirch/webBackup/dev
+    echo "Info: Change to the developer branch"
+fi
+
+# check backup_path
+if [ -z "$backup_path" ] || [ "$backup_path" == "" ]
+then
+    backup_path=$DIR/webBackup
+    echo "Info: backup_path was set to: "$backup_path
+fi
+
+# functions
 function check_required_config {
     # backup_database
     if [ -z "$backup_database" ] || [ "$backup_database" == "" ]
@@ -109,7 +116,31 @@ function webBackup_setup {
     echo "Success: Setup completed"
 }
 function webBackup_install {
-    echo "TEST"
+    # start
+    echo "Start installation..."
+
+    # check if webBackup folder exists and if so, cancel setup
+    if [ -d "$backup_path" ];
+    then
+	    echo "Error: A webBackup folder already exists, please secure it and remove it before you can reinstall webBackup."
+	    exit 1
+    fi
+
+    # create webBackup folder structure
+    echo 'Create webBackup folder structure...'
+    mkdir -p $backup_path
+    mkdir -p $backup_path/last
+    mkdir -p $backup_path/last/database
+    mkdir -p $backup_path/last/files
+    mkdir -p $backup_path/backups
+    mkdir -p $backup_path/backups/hourly
+    mkdir -p $backup_path/backups/daily
+    mkdir -p $backup_path/backups/weekly
+    mkdir -p $backup_path/backups/monthly
+    echo 'Success: Creation completed'
+
+    # end
+    echo "Success: Installation completed"
 }
 function webBackup_update {
     # start
@@ -124,9 +155,109 @@ function webBackup_update {
         wget --quiet --output-document=webBackup.config.example $URL/webBackup.config.example
     fi
     echo "Success: Download completed"
+    
+    # download last webBackup.sh
+    echo "Download last webBackup.sh..."
+    if [ $test_mode == true ]
+    then
+        echo "Info: Download is not executed (test mode activated)"
+    else
+        wget --quiet --output-document=$0.tmp $URL/webBackup.sh
+        chmod +x $0.tmp
+        mv $0.tmp $0
+    fi
+    echo "Success: Download completed"
 
     # end
     echo "Success: Update completed"
+}
+function backup_last_update {
+    # start
+    echo "Start backup..."
+
+    # create database backup, if desired
+    if [ $backup_database != "false" ]
+    then
+        echo "Create database backup..."
+        mysqldump --complete-insert --routines --triggers --single-transaction --skip-lock-tables --net_buffer_length 16384 -u root $backup_database > $backup_path/last/database/last.sql.tmp
+        mv $backup_path/last/database/last.sql.tmp $backup_path/last/database/last.sql
+        rm $backup_path/last/database/last.sql.tmp
+        echo "Success: Database backup"
+    fi
+    
+    # create file backup, if desired
+    if [ $backup_file_path != "false" ]
+    then
+        echo "Create file backup..."
+        rsync -a $backup_file_path/ $backup_path/last/files
+        echo "Success: File backup"
+    fi
+
+    # end
+    echo "Success: Backup"
+}
+function archive_backup {
+    # setup
+    echo "Start archiving the backup..."
+    case $1 in    
+        "--hourly"|"-h" )
+            archive_backup_path=$backup_path/backups/hourly
+            archive_backup_id=$(date +%H)
+            ;;
+        "--daily"|"-d" )
+            archive_backup_path=$backup_path/backups/daily
+            archive_backup_id=$(date +%d)
+            ;;
+        "--weekly"|"-w" )
+            archive_backup_path=$backup_path/backups/weekly
+            archive_backup_id=$((($(date +%-d)-1)/7+1))
+            ;;
+        "--monthly"|"-m" )
+            archive_backup_path=$backup_path/backups/monthly
+            archive_backup_id=$(date +%-m)
+            ;;
+        *)
+            echo "Error: Your input was incorrect, please have a look at the list of all commands here: https://github.com/TitusKirch/webBackup/wiki/Commands"
+            exit 1
+            ;;
+    esac
+
+    # get archive backup file path
+    archive_backup_file_path=$archive_backup_path/$archive_backup_id.tar.gz
+     
+    # check if config file exist
+    if test -f "$archive_backup_file_path"
+    then
+        echo "Remove old backup..."
+        rm $archive_backup_file_path
+        echo "Old backup was removed"
+    fi
+
+    # prepare backup
+    mkdir -p $backup_path/backups/tmp
+    mkdir -p $backup_path/backups/tmp/files
+    if [ $backup_database != "false" ]
+    then
+        echo "Copy last database backup..."
+        cp $backup_path/last/database/last.sql $backup_path/tmp/database.sql
+        echo "Success: Copy created"
+    fi
+    if [ $backup_file_path != "false" ]
+    then
+        echo "Copy last file backup..."
+        cp -a $backup_path/last/files/* $backup_path/backups/tmp/files
+        echo "Success: Copy created"
+    fi
+
+    # cretae archive
+    tar -zcf $archive_backup_file_path -C $backup_path/backups/tmp .
+
+    # delete the preparation
+	rm -r -f $backup_path/tmp
+    
+    # end
+    echo "Success: Backup created"
+    echo "Info: Backup available at '$archive_backup_file_path'"
 }
 function test_mode {
     # check if config file exist
@@ -143,38 +274,7 @@ function test_mode {
     fi
 }
 
-
-#  setup variables
-#datetime=$(date +%Y-%m-%d_%H-%M-%S)
-#backup_path=$backup_to_path/webBackup
-#files_folder=files
-#database_folder=database
-#backup_files_path=$backup_path/$files_folder
-#backup_database_path=$backup_path/$database_folder
-#backup_full_path=$backup_path/full
-
-# functions
-
-#function install_script {
-#    # setup webBackup folder structure
-#    echo 'Create webBackup folder structure...'
-#    mkdir -p $backup_path
-#    mkdir -p $backup_files_path
-#    mkdir -p $backup_database_path
-#    mkdir -p $backup_full_path
-#    echo 'Success'
-#}
-#function update_script {
-#    # update webBackup script
-#    echo 'Update script...'
-#    wget --quiet --output-document=$0.tmp $URL/webBackup.sh
-#    wget --quiet --output-document=webBackup.config.example $URL/webBackup.config.example
-#    chmod +x $0.tmp
-#    mv $0.tmp $0
-#	echo 'Success'
-#}
-
-# check mode
+# check command
 case $1 in 
     "--setup" )
         webBackup_setup
@@ -187,20 +287,25 @@ case $1 in
     "--update" )
         webBackup_update
         ;;
-    #"--full"|"-f" )
-    #    if [ $2 == "--ssh" ] || [ $2 == "-s" ]
-    #    then
-    #        ssh_upload
-    #    fi
-    #    ;;
-    #"--increment"|"-i" )
-    #    ;;
+    "--backup"|"-b" )
+        backup_last_update
+        ;;
+    "--archive-backup"|"-ab" )
+        # check mode
+        case $2 in    
+            "--hourly"|"-h"|"--daily"|"-d"|"--weekly"|"-w"|"--monthly"|"-m" )
+                archive_backup $2
+                ;;
+            *)
+                echo "Error: Your input was incorrect, please have a look at the list of all commands here: https://github.com/TitusKirch/webBackup/wiki/Commands"
+                exit 1
+                ;;
+        esac
+        ;;
     "--test" )
-        load_config
         check_required_config
         ;;
     "--testmode" )
-        load_config
         test_mode
         ;;
     *)
