@@ -25,6 +25,7 @@ backup_monthly=true
 #####################################################
 #ssh_user=
 #ssh_host=
-#ssh_port=
+#ssh_port=22
 #ssh_passphrase=
+#ssh_pub_key_path=
 #ssh_backup_path=
