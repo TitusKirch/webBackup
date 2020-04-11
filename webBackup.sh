@@ -189,7 +189,7 @@ function backup_last_update {
     if [ $backup_file_path != "false" ]
     then
         echo "Create file backup..."
-        rsync -a $backup_file_path/ $backup_path/last/files
+        rsync -a --delete $backup_file_path/ $backup_path/last/files
         echo "Success: File backup"
     fi
 
@@ -203,18 +203,22 @@ function archive_backup {
         "--hourly"|"-h" )
             archive_backup_path=$backup_path/backups/hourly
             archive_backup_id=$(date +%H)
+            archive_prefix=hourly
             ;;
         "--daily"|"-d" )
             archive_backup_path=$backup_path/backups/daily
             archive_backup_id=$(date +%d)
+            archive_prefix=daily
             ;;
         "--weekly"|"-w" )
             archive_backup_path=$backup_path/backups/weekly
             archive_backup_id=$((($(date +%-d)-1)/7+1))
+            archive_prefix=weekly
             ;;
         "--monthly"|"-m" )
             archive_backup_path=$backup_path/backups/monthly
             archive_backup_id=$(date +%-m)
+            archive_prefix=monthly
             ;;
         *)
             echo "Error: Your input was incorrect, please have a look at the list of all commands here: https://github.com/TitusKirch/webBackup/wiki/Commands"
@@ -223,7 +227,7 @@ function archive_backup {
     esac
 
     # get archive backup file path
-    archive_backup_file_path=$archive_backup_path/$archive_backup_id.tar.gz
+    archive_backup_file_path=$archive_backup_path/$archive_prefix\_$archive_backup_id.tar.gz
      
     # check if config file exist
     if test -f "$archive_backup_file_path"
@@ -251,13 +255,69 @@ function archive_backup {
 
     # cretae archive
     tar -zcf $archive_backup_file_path -C $backup_path/backups/tmp .
-
-    # delete the preparation
-	rm -r -f $backup_path/tmp
     
-    # end
+    # end (except backup should be transferred via ssh)
     echo "Success: Backup created"
     echo "Info: Backup available at '$archive_backup_file_path'"
+
+    # check for transfer via ssh
+    if [ "$2" == "--ssh" ] || [ "$2" == "-s" ]
+    then
+        ssh_transfer $archive_backup_file_path
+    fi
+
+    # delete the preparation
+	rm -r -f $backup_path/backups/tmp
+}
+function ssh_transfer {
+    # ssh_user
+    if [ -z "$ssh_user" ] || [ "$ssh_user" == "" ]
+    then
+	    echo "Error: The following required setting is missing in the configuration file 'ssh_user'."
+	    exit 1
+    fi
+
+    # ssh_host
+    if [ -z "$ssh_host" ] || [ "$ssh_host" == "" ]
+    then
+	    echo "Error: The following required setting is missing in the configuration file 'ssh_host'."
+	    exit 1
+    fi
+
+    # ssh_port
+    if [ -z "$ssh_port" ] || [ "$ssh_port" == "" ]
+    then
+	    echo "Error: The following required setting is missing in the configuration file 'ssh_port'."
+	    exit 1
+    fi
+
+    # ssh_backup_path
+    if [ -z "$ssh_backup_path" ] || [ "$ssh_backup_path" == "" ]
+    then
+	    echo "Error: The following required setting is missing in the configuration file 'ssh_backup_path'."
+	    exit 1
+    fi
+
+    # check if file was specified for transmission
+    if [ -z "$1" ] || [ "$1" == "" ]
+    then
+        echo "Error: No file was specified for transmission"
+        exit 1
+    fi
+
+    # ssh_pub_key_path
+    if [ -z "$ssh_pub_key_path" ] || [ "$ssh_pub_key_path" == "" ]
+    then
+        scp_i=
+    else
+        scp_i="-i $ssh_pub_key_path "
+    fi
+
+    # try to transfer file
+    echo "Start to transfer file ('$1')..."
+    cp -a $backup_path/last/files/* $backup_path/backups/tmp/files
+    scp $scp_i-P $ssh_port $1 $ssh_user@$ssh_host:$ssh_backup_path
+    echo "Success: Transfer completed"
 }
 function test_mode {
     # check if config file exist
@@ -294,7 +354,20 @@ case $1 in
         # check mode
         case $2 in    
             "--hourly"|"-h"|"--daily"|"-d"|"--weekly"|"-w"|"--monthly"|"-m" )
-                archive_backup $2
+                archive_backup $2 $3
+                ;;
+            *)
+                echo "Error: Your input was incorrect, please have a look at the list of all commands here: https://github.com/TitusKirch/webBackup/wiki/Commands"
+                exit 1
+                ;;
+        esac
+        ;;
+    "--archive-backup-complete"|"-abc" )
+        # check mode
+        case $2 in    
+            "--hourly"|"-h"|"--daily"|"-d"|"--weekly"|"-w"|"--monthly"|"-m" )
+                backup_last_update
+                archive_backup $2 $3
                 ;;
             *)
                 echo "Error: Your input was incorrect, please have a look at the list of all commands here: https://github.com/TitusKirch/webBackup/wiki/Commands"
