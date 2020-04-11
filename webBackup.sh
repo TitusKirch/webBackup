@@ -132,11 +132,11 @@ function webBackup_install {
     mkdir -p $backup_path/last
     mkdir -p $backup_path/last/database
     mkdir -p $backup_path/last/files
-    mkdir -p $backup_path/backups
-    mkdir -p $backup_path/backups/hourly
-    mkdir -p $backup_path/backups/daily
-    mkdir -p $backup_path/backups/weekly
-    mkdir -p $backup_path/backups/monthly
+    mkdir -p $backup_path/archives
+    mkdir -p $backup_path/archives/hourly
+    mkdir -p $backup_path/archives/daily
+    mkdir -p $backup_path/archives/weekly
+    mkdir -p $backup_path/archives/monthly
     echo 'Success: Creation completed'
 
     # end
@@ -201,22 +201,22 @@ function archive_backup {
     echo "Start archiving the backup..."
     case $1 in    
         "--hourly"|"-h" )
-            archive_backup_path=$backup_path/backups/hourly
+            archive_backup_path=$backup_path/archives/hourly
             archive_backup_id=$(date +%H)
             archive_prefix=hourly
             ;;
         "--daily"|"-d" )
-            archive_backup_path=$backup_path/backups/daily
+            archive_backup_path=$backup_path/archives/daily
             archive_backup_id=$(date +%d)
             archive_prefix=daily
             ;;
         "--weekly"|"-w" )
-            archive_backup_path=$backup_path/backups/weekly
+            archive_backup_path=$backup_path/archives/weekly
             archive_backup_id=$((($(date +%-d)-1)/7+1))
             archive_prefix=weekly
             ;;
         "--monthly"|"-m" )
-            archive_backup_path=$backup_path/backups/monthly
+            archive_backup_path=$backup_path/archives/monthly
             archive_backup_id=$(date +%-m)
             archive_prefix=monthly
             ;;
@@ -238,23 +238,23 @@ function archive_backup {
     fi
 
     # prepare backup
-    mkdir -p $backup_path/backups/tmp
-    mkdir -p $backup_path/backups/tmp/files
+    mkdir -p $backup_path/archives/tmp
+    mkdir -p $backup_path/archives/tmp/files
     if [ $backup_database != "false" ]
     then
         echo "Copy last database backup..."
-        cp $backup_path/last/database/last.sql $backup_path/tmp/database.sql
+        cp $backup_path/last/database/last.sql $backup_path/archives/tmp/database.sql
         echo "Success: Copy created"
     fi
     if [ $backup_file_path != "false" ]
     then
         echo "Copy last file backup..."
-        cp -a $backup_path/last/files/* $backup_path/backups/tmp/files
+        cp -a $backup_path/last/files/* $backup_path/archives/tmp/files
         echo "Success: Copy created"
     fi
 
     # cretae archive
-    tar -zcf $archive_backup_file_path -C $backup_path/backups/tmp .
+    tar -zcf $archive_backup_file_path -C $backup_path/archives/tmp .
     
     # end (except backup should be transferred via ssh)
     echo "Success: Backup created"
@@ -267,7 +267,7 @@ function archive_backup {
     fi
 
     # delete the preparation
-	rm -r -f $backup_path/backups/tmp
+	rm -r -f $backup_path/archives/tmp
 }
 function ssh_transfer {
     # ssh_user
@@ -315,7 +315,7 @@ function ssh_transfer {
 
     # try to transfer file
     echo "Start to transfer file ('$1')..."
-    cp -a $backup_path/last/files/* $backup_path/backups/tmp/files
+    cp -a $backup_path/last/files/* $backup_path/archives/tmp/files
     scp $scp_i-P $ssh_port $1 $ssh_user@$ssh_host:$ssh_backup_path
     echo "Success: Transfer completed"
 }
