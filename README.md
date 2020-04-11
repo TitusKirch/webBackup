@@ -100,7 +100,7 @@ Update the backup files and create a backup archive (optinal with transmission v
 ```
 
 ### Example scenario with conjobs
-Creates an hourly backup every hour at 10 past 10, a daily backup every day at 02:20, a weekly backup every Monday at 03:30 and a monastic backup every first day of a month at 04:40. Whenever a backup is created, the backup files are updated and a copy is transferred via ssh afterwards. (of course the jwewewilige backup must be activated in the config, despite the cronjob)
+Creates an hourly backup every hour at 10 past, a daily backup every day at 02:20, a weekly backup every Monday at 03:30 and a monthly backup every first day of a month at 04:40. Each time a backup is created, the backup files are updated and then a copy is transferred via ssh. (of course, the respective backup must be enabled in the configuration, despite the cronjob)
 ```BASH
 10 * * * * /path/to/webBackup.sh -abc -h -s >/dev/null 2>&1
 20 2 * * * /path/to/webBackup.sh -abc -d -s >/dev/null 2>&1
