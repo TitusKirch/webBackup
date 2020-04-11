@@ -344,12 +344,15 @@ case $1 in
         webBackup_install
         ;;
     "--update" )
+        check_required_config
         webBackup_update
         ;;
     "--backup"|"-b" )
+        check_required_config
         backup_last_update
         ;;
     "--archive-backup"|"-ab" )
+        check_required_config
         # check mode
         case $2 in    
             "--hourly"|"-h"|"--daily"|"-d"|"--weekly"|"-w"|"--monthly"|"-m" )
@@ -362,6 +365,7 @@ case $1 in
         esac
         ;;
     "--archive-backup-complete"|"-abc" )
+        check_required_config
         # check mode
         case $2 in    
             "--hourly"|"-h"|"--daily"|"-d"|"--weekly"|"-w"|"--monthly"|"-m" )
