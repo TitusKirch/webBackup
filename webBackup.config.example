@@ -1,7 +1,30 @@
-database_name=
-file_path=
-backup_to_path=
-ssh_user=
-ssh_port=22
-ssh_destination=127.0.0.1:/path/to/destination
-dev_mode=false
+#####################################################
+# backup settings (required)
+# ===================================================
+# description in progress
+#####################################################
+backup_database=
+backup_file_path=
+backup_hourly=true
+backup_daily=true
+backup_weekly=true
+backup_monthly=true
+
+#####################################################
+# webBackup settings (optional)
+# ===================================================
+# description in progress
+#####################################################
+#backup_path=
+#dev_mode=
+
+#####################################################
+# ssh settings (optional)
+# ===================================================
+# description in progress
+#####################################################
+#ssh_user=
+#ssh_host=
+#ssh_port=22
+#ssh_pub_key_path=
+#ssh_backup_path=
