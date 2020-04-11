@@ -28,14 +28,19 @@ The following command downloads the latest version of the script to the current 
 wget https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.sh && chmod +x webBackup.sh && ./webBackup.sh --setup
 ```
 
-Then copy the example configuration and make the appropriate settings.
+Then configure webBackup with your favorite editor (here the command with nano).
 ```BASH
-cp webBackup.config.example webBackup.config && nano webBackup.config
+nano webBackup.config
 ```
 
-Install webBackup
+Then install webBackup (during installation webBackup will be updated again).
 ```BASH
 ./webBackup.sh --install
+```
+
+Here the whole installation process in one line
+```BASH
+wget https://raw.githubusercontent.com/TitusKirch/webBackup/master/webBackup.sh && chmod +x webBackup.sh && ./webBackup.sh --setup && nano webBackup.config && ./webBackup.sh --install
 ```
 
 ## Update
@@ -47,33 +52,47 @@ To update webBackup, execute the following command.
 
 ## How to use
 
-There are two types of backups, incremental and full backups. In both cases, the database (if specified) is stored completely. With incremental backups, changed files are stored temporarily on the same host system (there is only one backup of them at a time). With full backups, an incremental backup is created and packed into an archive with the database backup and additionally saved (these are not deleted or overwritten). Full backups can also be transferred to other servers via SSH.
+webBackup creates a local copy of your database and/or files.
+Optional hourly (maximum 24), daily (maximum 7), weekly (maximum 5) or monthly (maximum 12) backup archives can be created. **Important**: Old backups will be overwritten.
+Furthermore there is the possibility to save backups additionally via ssh on another server.
 
-Creating an incremental backup:
+Update backup files:
 ```BASH
 # long command
-./webBackup.sh --increment
+./webBackup.sh --backup
 
 # short command
-./webBackup.sh -i
+./webBackup.sh -b
 ```
 
-Creating a full backup (without storage via SSH on another host system):
+Create a backup archive (optinal with transmission via ssh):
 ```BASH
 # long command
-./webBackup.sh --full
+./webBackup.sh --archive-backup --hourly|--daily|--weekly|--monthly
 
 # short command
-./webBackup.sh -f
+./webBackup.sh -ab -h|-d|-w|-m
+
+# long command with transmission via ssh
+./webBackup.sh --archive-backup --hourly|--daily|--weekly|--monthly --ssh
+
+# short command with transmission via ssh
+./webBackup.sh -ab -h|-d|-w|-m -s
 ```
 
-Creating an full backup (with storage via SSH on another host system):
+Update the backup files and create a backup archive (optinal with transmission via ssh):
 ```BASH
 # long command
-./webBackup.sh --full --ssh
+./webBackup.sh --archive-backup-complete --hourly|--daily|--weekly|--monthly
 
 # short command
-./webBackup.sh -f -s
+./webBackup.sh -abc -h|-d|-w|-m
+
+# long command with transmission via ssh
+./webBackup.sh --archive-backupp-complete --hourly|--daily|--weekly|--monthly --ssh
+
+# short command with transmission via ssh
+./webBackup.sh -abc -h|-d|-w|-m -s
 ```
 
 ## Contributing
